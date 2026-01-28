@@ -1,83 +1,101 @@
-import tkinter as tk
-from collections import deque
+import random
 
-class BFSApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("BFS Editor (короткий)")
-        
-        self.canvas = tk.Canvas(root, width=600, height=400, bg="white")
-        self.canvas.pack(pady=10)
-        
-        tk.Button(root, text="Добавить узел", command=self.add_node).pack(side="left", padx=5)
-        tk.Button(root, text="Соединить", command=self.link_nodes).pack(side="left", padx=5)
-        tk.Button(root, text="Запустить BFS", command=self.bfs).pack(side="left", padx=5)
-        tk.Button(root, text="Очистить", command=self.clear).pack(side="left", padx=5)
-        
-        self.canvas.bind("<Button-1>", self.click)
-        self.canvas.bind("<Button-3>", self.set_start)
+class TicTacToe:
+    def __init__(self):
+        # Игровое поле 3x3 (пустые клетки — пробелы)
+        self.board = [' ' for _ in range(9)]
+        self.current_player = 'X'  # Начинает игрок
 
-    def add_node(self):
-        x, y = 50 + len(self.nodes) * 60, 100
-        nid = len(self.nodes)
-        self.nodes[nid] = (x, y)
-        self.graph[nid] = []
-        self.canvas.create_oval(x-15, y-15, x+15, y+15, fill="lightblue", tags=f"n{nid}")
-        self.canvas.create_text(x, y, text=str(nid), tags=f"t{nid}")
+    def print_board(self):
+        """Вывод поля в консоль"""
+        print("\n   0   1   2")
+        for i in range(3):
+            row = f"{i} "
+            for j in range(3):
+                row += f" {self.board[i*3 + j]} "
+                if j < 2: row += "|"
+            print(row)
+            if i < 2: print("  -----------")
+        print()
 
-    def link_nodes(self):
-        if len(self.nodes) < 2: return
-        self.sel = []
-        self.canvas.bind("<Button-1>", self.select_for_link)
+    def check_winner(self):
+        """Проверяет, есть ли победитель"""
+        # Все возможные выигрышные комбинации
+        lines = [
+            [0,1,2], [3,4,5], [6,7,8],  # горизонтали
+            [0,3,6], [1,4,7], [2,5,8],  # вертикали
+            [0,4,8], [2,4,6]              # диагонали
+        ]
+        for line in lines:
+            if (self.board[line[0]] == self.board[line[1]] == 
+                self.board[line[2]] != ' '):
+                return self.board[line[0]]
+        return None
 
-    def select_for_link(self, event):
-        for nid, (x, y) in self.nodes.items():
-            if (x-event.x)**2 + (y-event.y)**2 <= 15**2:
-                self.sel.append(nid)
-                if len(self.sel) == 2:
-                    n1, n2 = self.sel
-                    self.edges.append((n1, n2))
-                    x1, y1 = self.nodes[n1]
-                    x2, y2 = self.nodes[n2]
-                    self.canvas.create_line(x1, y1, x2, y2, tags=f"e{n1}{n2}")
-                    self.graph[n1].append(n2)
-                    self.graph[n2].append(n1)
-                    self.sel = []
-                return
+    def is_draw(self):
+        """Проверяет ничью (поле заполнено, победителя нет)"""
+        return ' ' not in self.board and not self.check_winner()
 
-    def set_start(self, event):
-        for nid, (x, y) in self.nodes.items():
-            if (x-event.x)**2 + (y-event.y)**2 <= 15**2:
-                self.start = nid
-                self.canvas.itemconfig(f!n{nid}", fill="gold")
-                return
+    def make_move(self, position):
+        """Делает ход в указанную клетку"""
+        if self.board[position] == ' ':
+            self.board[position] = self.current_player
+            return True
+        return False
 
-    def bfs(self):
-        if self.start is None:
-            tk.messagebox.showwarning("Ошибка", "Выберите стартовый узел (ПКМ)!")
-            return
-        visited = set()
-        q = deque([self.start])
-        while q:
-            n = q.popleft()
-            if n in visited: continue
-            visited.add(n)
-            self.canvas.itemconfig(f!n{n}", fill="green")
-            self.root.update()
-            self.root.after(500)  # пауза 0.5 с
-            for neigh in self.graph.get(n, []):
-                if neigh not in visited:
-                    q.append(neigh)
-        tk.messagebox.showinfo("Готово", f"BFS закончен. Узлы: {sorted(visited)}")
+    def switch_player(self):
+        """Меняет текущего игрока"""
+        self.current_player = 'O' if self.current_player == 'X' else 'X'
 
-    def clear(self):
-        self.canvas.delete("all")
-        self.nodes.clear()
-        self.edges.clear()
-        self.graph.clear()
-        self.start = None
+    def computer_move(self):
+        """Ход компьютера (случайный выбор свободной клетки)"""
+        free_cells = [i for i, cell in enumerate(self.board) if cell == ' ']
+        if free_cells:
+            move = random.choice(free_cells)
+            self.board[move] = 'O'
+            print(f"Компьютер поставил O в клетку {move}")
 
+    def play(self):
+        """Основной игровой цикл"""
+        print("Добро пожаловать в Крестики‑нолики!")
+        print("Вы играете за X. Введите номер строки и столбца (0–2).")
+
+        while True:
+            self.print_board()
+
+            # Ход игрока
+            if self.current_player == 'X':
+                try:
+                    row = int(input("Строка (0–2): "))
+                    col = int(input("Столбец (0–2): "))
+                    if row not in (0,1,2) or col not in (0,1,2):
+                        print("Введите числа от 0 до 2!")
+                        continue
+                    position = row * 3 + col
+                    if not self.make_move(position):
+                        print("Эта клетка уже занята!")
+                        continue
+                except ValueError:
+                    print("Введите число!")
+                    continue
+            # Ход компьютера
+            else:
+                self.computer_move()
+
+            # Проверка победы/ничьей
+            winner = self.check_winner()
+            if winner:
+                self.print_board()
+                print(f"Победил {winner}!")
+                break
+            if self.is_draw():
+                self.print_board()
+                print("Ничья!")
+                break
+
+            self.switch_player()
+
+# Запуск игры
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = BFSApp(root)
-    root.mainloop()
+    game = TicTacToe()
+    game.play()
