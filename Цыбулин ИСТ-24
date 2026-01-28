@@ -14,11 +14,6 @@ class BFSApp:
         tk.Button(root, text="Запустить BFS", command=self.bfs).pack(side="left", padx=5)
         tk.Button(root, text="Очистить", command=self.clear).pack(side="left", padx=5)
         
-        self.nodes = {}        # {id: (x, y)}
-        self.edges = []         # [(n1, n2)]
-        self.graph = {}         # {id: [сосед1, сосед2, ...]}
-        self.start = None       # стартовый узел для BFS
-        
         self.canvas.bind("<Button-1>", self.click)
         self.canvas.bind("<Button-3>", self.set_start)
 
